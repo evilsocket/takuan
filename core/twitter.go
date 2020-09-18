@@ -127,12 +127,12 @@ func (t *Twitter) OnBatch(events []Event) {
 
 func (t *Twitter) createBin(content string) (string, error) {
 	data := url.Values{
-		"api_option":            {"paste"},
-		"api_dev_key":           {t.PasteBinKey},
-		"api_paste_private":     {"1"}, // unlisted
-		"api_paste_expire_date": {"1H"},
-		"api_paste_name":        {"takuan report"},
-		"api_paste_code":        {content},
+		"api_option":        {"paste"},
+		"api_dev_key":       {t.PasteBinKey},
+		"api_paste_private": {"1"}, // unlisted
+		"api_paste_name":    {"takuan report"},
+		"api_paste_code":    {content},
+		// "api_paste_expire_date": {"1H"},
 	}
 
 	resp, err := http.PostForm("https://pastebin.com/api/api_post.php", data)
