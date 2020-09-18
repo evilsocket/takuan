@@ -5,7 +5,7 @@ services:
     container_name: takuan_db
     image: mysql:5.7
     volumes:
-      - "./takuan-db-data:/var/lib/mysql"
+      - "/var/lib/takuan:/var/lib/mysql"
     restart: always
     ports:
       - 3316:3306
@@ -20,13 +20,13 @@ services:
 
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
-    container_name: taluan_phpmyadmin
+    container_name: takuan_phpmyadmin
     depends_on:
       - db
     environment:
       - PMA_HOST=db
       - PMA_USER=takuan
-      - PMA_PORT=3306
+      - PMA_PORT=3316
       - PMA_PASSWORD=takuan
     ports:
       - 9090:80
@@ -42,12 +42,9 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - /private/var/log/auth.log:/var/log/auth.log
-      - /private/var/log/nginx:/var/log/nginx
-      - /private/etc/takuan:/etc/takuan
-      # - /var/log/auth.log:/var/log/auth.log
-      # - /var/log/nginx:/var/log/nginx
-      # - /etc/takuan:/etc/takuan
+      - /var/log/auth.log:/var/log/auth.log
+      - /var/log/nginx:/var/log/nginx
+      - /etc/takuan:/etc/takuan
     restart: on-failure
     networks:
       - takuan-network
