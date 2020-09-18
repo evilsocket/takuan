@@ -14,7 +14,6 @@ services:
       - MYSQL_PASSWORD=takuan
       - MYSQL_DATABASE=takuan
       - MYSQL_ROOT_PASSWORD=takuan
-    user: mysql
     networks:
       - takuan-network
 
