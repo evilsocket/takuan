@@ -25,7 +25,7 @@ services:
     environment:
       - PMA_HOST=db
       - PMA_USER=takuan
-      - PMA_PORT=3316
+      - PMA_PORT=3306
       - PMA_PASSWORD=takuan
     ports:
       - 9090:80
