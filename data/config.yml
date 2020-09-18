@@ -1,0 +1,82 @@
+geoip: data/GeoLite2-Country.mmdb
+
+report:
+  top: 50
+  period: 10
+
+sensors:
+- name: ssh  
+  #filename: /var/log/auth.log
+  filename: data/auth.log
+  enabled: true
+  period: 10
+  parser: 
+    expression: '^(.+)\s+.+\s+sshd\[\d+\]: (.+)\s+(.+)\s+port\s+\d+$'
+    datetime_format: 'Jan _2 15:04:05'
+    tokens:
+      datetime: 1
+      message: 2 
+      address: 3
+  rules:
+      - name: 'auth-failure'
+        description: 'Authentication failures.'
+        token: message
+        expression: 'Authentication (failure|error|failed) for .+'
+
+      - name: 'user-enumeration'
+        description: 'Matches authentication attempts with invalid usernames.'
+        token: message
+        expression: '(Illegal|Invalid) user .+'
+
+- name: http
+  #filename: /var/log/access.log
+  filename: data/access.log
+  enabled: true
+  period: 10
+  parser: 
+    expression: '^([^\s]+).+\[(.+)\]\s+"([^"]+)"\s+(\d+)\s+(\d+)\s+"([^"]+)"\s+"([^"]+)"$'
+    datetime_format: '02/Jan/2006:15:04:05 -0700'
+    tokens:
+      address: 1 # mandatory
+      datetime: 2 # mandatory
+      request: 3
+      response_code: 4
+      response_size: 5
+      user_agent: 7
+  rules:
+      - name: 'Axis SSI RCE'
+        description: https://www.exploit-db.com/exploits/43984
+        token: request
+        expression: '.+/incl/image_test.shtml?camnbr=.+'
+
+      - name: 'CVE-2017-9841'
+        description: https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2017-9841
+        token: request
+        expression: '.+Util/PHP/eval-stdin\.php'
+
+      - name: 'ThinkPHP RCE'
+        description: 'https://securitynews.sonicwall.com/xmlpost/thinkphp-remote-code-execution-rce-bug-is-actively-being-exploited/' 
+        token: request
+        expression: '.+app/invokefunction&function=call_user_func_array.+'
+
+      - name: 'WP-File-Manager RCE'
+        description: 'https://www.wordfence.com/blog/2020/09/700000-wordpress-users-affected-by-zero-day-vulnerability-in-file-manager-plugin/'
+        token: request
+        expression: 'wp-file-manager/lib/php/connector.minimal.php'
+
+      - name: 'XDebug'
+        description: 'https://xdebug.org/docs/remote'
+        token: request
+        expression: '.+XDEBUG_SESSION_START=.+'
+
+      - name: php_files_scan
+        token: request
+        expression: '.+\.php.*'
+
+      - name: not_a_browser
+        token: user_agent
+        expression: '(python|curl|wget)' 
+
+
+
+      
