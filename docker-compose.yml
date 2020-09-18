@@ -8,7 +8,7 @@ services:
       - "./takuan-db-data:/var/lib/mysql"
     restart: always
     ports:
-      - 3306:3306
+      - 3316:3306
     environment:
       - MYSQL_USER=takuan
       - MYSQL_PASSWORD=takuan

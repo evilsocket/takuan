@@ -1,7 +1,7 @@
 name: 'local'
 
 database:
-  url: "takuan:takuan@tcp(db:3306)/takuan?charset=utf8mb4&parseTime=True&loc=Local" 
+  url: "takuan:takuan@tcp(db:3316)/takuan?charset=utf8mb4&parseTime=True&loc=Local" 
   geoip: /etc/takuan/GeoLite2-Country.mmdb
   period: 10
 
