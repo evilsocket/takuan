@@ -1,0 +1,64 @@
+version: '3'
+services:
+
+  db:
+    container_name: takuan_db
+    image: mysql:5.7
+    volumes:
+      - "./takuan-db-data:/var/lib/mysql"
+    restart: always
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_USER=takuan
+      - MYSQL_PASSWORD=takuan
+      - MYSQL_DATABASE=takuan
+      - MYSQL_ROOT_PASSWORD=takuan
+    user: mysql
+    networks:
+      - takuan-network
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: taluan_phpmyadmin
+    depends_on:
+      - db
+    environment:
+      - PMA_HOST=db
+      - PMA_USER=takuan
+      - PMA_PORT=3306
+      - PMA_PASSWORD=takuan
+    ports:
+      - 9090:80
+    restart: always
+    networks:
+      - takuan-network
+    logging:
+      driver: none 
+
+  takuan:
+    container_name: takuan
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - /private/var/log/auth.log:/var/log/auth.log
+      - /private/var/log/nginx:/var/log/nginx
+      - /private/etc/takuan:/etc/takuan
+      # - /var/log/auth.log:/var/log/auth.log
+      # - /var/log/nginx:/var/log/nginx
+      # - /etc/takuan:/etc/takuan
+    restart: on-failure
+    networks:
+      - takuan-network
+    depends_on:
+      - db
+
+volumes:
+  # persist database
+  db-data-volume:
+    driver: local
+
+networks:
+  takuan-network:
+    driver: bridge

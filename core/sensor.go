@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/evilsocket/islazy/log"
-	"github.com/teris-io/shortid"
 )
 
 type Sensor struct {
@@ -37,14 +36,13 @@ func (s *Sensor) Compile() error {
 	return nil
 }
 
-func (s *Sensor) Start(events chan Event, errors chan error) {
+func (s *Sensor) Start(events chan Event, errors chan error, states chan SensorState, state int64) {
 	go func() {
-		log.Info("sensor %s started for file %s ...", s.Name, s.Filename)
+		log.Info("sensor %s started for file %s (from offset %d)...", s.Name, s.Filename, state)
+		s.lastPos = state
 
 		for {
 			var err error
-
-			log.Debug("sensor %s running %d rules from offset %d", s.Name, len(s.Rules), s.lastPos)
 
 			s.fp, err = os.Open(s.Filename)
 			if err != nil {
@@ -81,19 +79,16 @@ func (s *Sensor) Start(events chan Event, errors chan error) {
 
 					// for each rule
 					for _, r := range s.Rules {
-						if matched, value := r.Match(tokens); matched {
+						if matched, _ := r.Match(tokens); matched {
 							event := Event{
-								ID:         shortid.MustGenerate(),
 								DetectedAt: time.Now(),
 								Address:    tokens["address"],
-								LogLine:    line,
-								Tokens:     tokens,
-								Payload:    value,
+								Payload:    line,
 								Rule:       r.Name,
 								Sensor:     s.Name,
 							}
 
-							event.Time, err = time.Parse(s.Parser.DatetimeFormat, tokens["datetime"])
+							event.CreatedAt, err = time.Parse(s.Parser.DatetimeFormat, tokens["datetime"])
 							if err != nil {
 								errors <- fmt.Errorf("could not parse datetime '%s' with format '%s': %v", tokens["datetime"], s.Parser.DatetimeFormat, err)
 							}
@@ -109,6 +104,11 @@ func (s *Sensor) Start(events chan Event, errors chan error) {
 
 			s.lastPos, _ = s.fp.Seek(0, io.SeekCurrent)
 			s.fp.Close()
+
+			states <- SensorState{
+				SensorName:   s.Name,
+				LastPosition: s.lastPos,
+			}
 
 			time.Sleep(time.Duration(s.PeriodSecs) * time.Second)
 		}

@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	GeoIP   string    `yaml:"geoip"`
-	Report  Report    `yaml:"report"`
-	Sensors []*Sensor `yaml:"sensors"`
+	NodeName string    `yaml:"name"`
+	Database Database  `yaml:"database"`
+	Twitter  *Twitter  `yaml:"twitter"`
+	Sensors  []*Sensor `yaml:"sensors"`
 }
 
 func Load(filename string) (*Config, error) {
@@ -26,6 +27,12 @@ func Load(filename string) (*Config, error) {
 
 	for _, sensor := range conf.Sensors {
 		if err = sensor.Compile(); err != nil {
+			return nil, err
+		}
+	}
+
+	if conf.Twitter.Enabled {
+		if err = conf.Twitter.Init(); err != nil {
 			return nil, err
 		}
 	}

@@ -5,15 +5,15 @@ import (
 )
 
 type Event struct {
-	ID         string    `json:"id"`
-	DetectedAt time.Time `json:"detected_at"`
-	Time       time.Time `json:"happened_at"`
-	Address    string    `json:"address"`
-	Country    string    `json:"country"`
-	Hostname   string    `json:"hostname"`
-	LogLine    string    `json:"line"`
-	Tokens     Tokens    `json:"tokens"`
-	Payload    string    `json:"payload"`
-	Sensor     string    `json:"sensor"`
-	Rule       string    `json:"rule"`
+	ID          uint       `gorm:"primary_key" json:"-"`
+	CreatedAt   time.Time  `gorm:"index" json:"created_at"`
+	DetectedAt  time.Time  `gorm:"index" json:"detected_at"`
+	DeletedAt   *time.Time `gorm:"index" json:"-"`
+	NodeName    string     `gorm:"index" json:"node_name"`
+	Address     string     `gorm:"index" gorm:"size:50; not null" json:"address"`
+	CountryCode string     `gorm:"index" gorm:"size:5;" json:"country_code"`
+	CountryName string     `json:"country_name"`
+	Sensor      string     `gorm:"index" json:"sensor"`
+	Rule        string     `gorm:"index" json:"rule"`
+	Payload     string     `json:"payload"`
 }

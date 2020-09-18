@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/evilsocket/islazy/log"
 )
@@ -14,6 +15,11 @@ var mandatoryTokens = []string{
 	"address",
 	"datetime",
 }
+
+var (
+	currYear       = time.Now().Year()
+	currYearString = fmt.Sprintf("%d", currYear)
+)
 
 type Parser struct {
 	DatetimeFormat string         `yaml:"datetime_format"`
@@ -49,10 +55,17 @@ func (p *Parser) Compile() (err error) {
 
 func (p *Parser) Parse(line string) (matched bool, tokens Tokens) {
 	if m := p.compiled.FindStringSubmatch(line); len(m) >= p.maxIndex {
+
 		matched = true
 		tokens = make(map[string]string)
 		for token, index := range p.Tokens {
-			tokens[token] = m[index]
+			value := m[index]
+			// ugly hack to handle formats withtout the year like sshd
+			if token == "datetime" && !strings.Contains(value, currYearString) {
+				value = fmt.Sprintf("%s %s", currYearString, value)
+			}
+
+			tokens[token] = value
 		}
 	}
 	return

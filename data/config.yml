@@ -1,18 +1,26 @@
-geoip: data/GeoLite2-Country.mmdb
+name: 'local'
 
-report:
-  top: 50
+database:
+  url: "takuan:takuan@tcp(db:3306)/takuan?charset=utf8mb4&parseTime=True&loc=Local" 
+  geoip: /etc/takuan/GeoLite2-Country.mmdb
   period: 10
+
+twitter:
+  enabled: true
+  pastebin_api_key: 'xxx'
+  consumer_key: 'xxx'
+  consumer_secret: 'xxx'
+  access_key: 'xxx'
+  access_secret: 'xxx'
 
 sensors:
 - name: ssh  
-  #filename: /var/log/auth.log
-  filename: data/auth.log
+  filename: /var/log/auth.log
   enabled: true
   period: 10
   parser: 
     expression: '^(.+)\s+.+\s+sshd\[\d+\]: (.+)\s+(.+)\s+port\s+\d+$'
-    datetime_format: 'Jan _2 15:04:05'
+    datetime_format: '2006 Jan _2 15:04:05'
     tokens:
       datetime: 1
       message: 2 
@@ -29,8 +37,7 @@ sensors:
         expression: '(Illegal|Invalid) user .+'
 
 - name: http
-  #filename: /var/log/access.log
-  filename: data/access.log
+  filename: /var/log/nginx/access.log
   enabled: true
   period: 10
   parser: 
