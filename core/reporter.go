@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"github.com/go-git/go-git/v5/plumbing/object"
+	"io/ioutil"
 	"os"
 	"path"
 	"sort"
@@ -14,6 +15,7 @@ import (
 	"github.com/evilsocket/islazy/fs"
 	"github.com/evilsocket/islazy/log"
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport/ssh"
 
 	"github.com/evilsocket/takuan/models"
 )
@@ -24,11 +26,25 @@ type Reporter struct {
 	Enabled    bool       `yaml:"enabled"`
 	Repository repository `yaml:"repository"`
 
-	repo *git.Repository
-	tree *git.Worktree
+	publicKey *ssh.PublicKeys
+	repo      *git.Repository
+	tree      *git.Worktree
 }
 
 func (r *Reporter) Init() (err error) {
+	sshPath := os.Getenv("HOME") + "/.ssh/id_rsa"
+	log.Debug("using ssh key %s", sshPath)
+
+	sshKey, err := ioutil.ReadFile(sshPath)
+	if err != nil {
+		return fmt.Errorf("error reading %s: %v", sshPath, err)
+	}
+
+	r.publicKey, err = ssh.NewPublicKeys("git", sshKey, "")
+	if err != nil {
+		return fmt.Errorf("error reading %s: %v", sshPath, err)
+	}
+
 	if fs.Exists(r.Repository.Local) {
 		// open local copy and pull
 		if r.repo, err = git.PlainOpen(r.Repository.Local); err != nil {
@@ -42,15 +58,21 @@ func (r *Reporter) Init() (err error) {
 
 		log.Info("updating %s from %s ...", r.Repository.Local, r.Repository.Remote)
 
-		if err = r.tree.Pull(&git.PullOptions{RemoteName: "origin"}); err != nil {
+		pullOpts := git.PullOptions{
+			Auth:       r.publicKey,
+			RemoteName: "origin",
+		}
+
+		if err = r.tree.Pull(&pullOpts); err != nil {
 			return fmt.Errorf("error while updating git repo %s: %v", r.Repository.Local, err)
 		}
 	} else {
 		log.Info("cloning %s to %s ...", r.Repository.Remote, r.Repository.Local)
 
-		r.repo, err = git.PlainClone(r.Repository.Local, true, &git.CloneOptions{
-			URL: r.Repository.Remote,
-			Progress: os.Stdout,
+		r.repo, err = git.PlainClone(r.Repository.Local, false, &git.CloneOptions{
+			URL:  r.Repository.Remote,
+			Auth: r.publicKey,
+			// Progress: os.Stdout,
 		})
 
 		if err != nil {
@@ -132,7 +154,7 @@ func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) 
 				counters = append(counters, fmt.Sprintf("%s:%d", typeName, count))
 			}
 
-			writer.Write([]string {
+			writer.Write([]string{
 				address,
 				addrEvents[0].CountryCode,
 				addrEvents[0].CountryName,
@@ -153,7 +175,7 @@ func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) 
 
 		_, err = r.tree.Commit("new report", &git.CommitOptions{
 			Author: &object.Signature{
-				When:  time.Now(),
+				When: time.Now(),
 			},
 		})
 
