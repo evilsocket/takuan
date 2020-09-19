@@ -169,7 +169,7 @@ func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) 
 		// add, commit and push
 		log.Info("adding %s to repository", fileName)
 
-		if _, err := r.tree.Add(fileName); err != nil {
+		if _, err := r.tree.Add(fileBaseName); err != nil {
 			return "", fmt.Errorf("error while adding report %s to git repo %s: %v", fileName, r.Repository.Local, err)
 		}
 
