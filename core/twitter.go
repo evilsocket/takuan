@@ -75,10 +75,8 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			countries = append(countries, fmt.Sprintf("%s (%d)", code, country.Count))
 		}
 
-		log.Info("%+v", countries)
-
-		if len(countries) > 10 {
-			countries = append(countries[:10], "...")
+		if len(countries) > 5 {
+			countries = append(countries[:5], "...")
 		}
 
 		numEvents := len(events)
@@ -87,7 +85,9 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			plural = ""
 		}
 
-		tweet := fmt.Sprintf("%d new event%s from %s %s", numEvents, plural, strings.Join(countries, ", "), reportURL)
+		tweet := fmt.Sprintf("%d new event%s from %s %s #takuan #threatreport", numEvents, plural,
+			strings.Join(countries, "," +
+			" "), reportURL)
 		if err := t.postUpdate(tweet); err != nil {
 			log.Error("error tweeting: %v", err)
 		}
