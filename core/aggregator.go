@@ -90,7 +90,7 @@ func (r *Aggregator) onReport() {
 	var unreported []models.Event
     var reportURL string
 
-	err := r.db.Where("reported IS ?", false).Find(&unreported).Error
+	err := r.db.Where("reported_at = ?", nil).Find(&unreported).Error
 	if err != nil {
 		log.Error("error getting unreported events: %v", err)
 		return
@@ -105,7 +105,6 @@ func (r *Aggregator) onReport() {
 		now := time.Now()
 		for _, event := range unreported {
 			event.ReportedAt = &now
-			event.Reported = true
 			if err := r.db.Save(event).Error; err != nil {
 				log.Error("error updating event reported field: %v", err)
 			}

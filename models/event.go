@@ -16,6 +16,5 @@ type Event struct {
 	Sensor      string     `gorm:"index" json:"sensor"`
 	Rule        string     `gorm:"index" json:"rule"`
 	Payload     string     `json:"payload"`
-	Reported    bool       `gorm:"index; default:false" json:"reported"`
 	ReportedAt  *time.Time  `gorm:"index" json:"reported_at"`
 }

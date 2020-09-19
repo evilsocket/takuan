@@ -179,7 +179,8 @@ func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) 
 			return "", fmt.Errorf("error while adding report %s to git repo %s: %v", fileName, r.Repository.Local, err)
 		}
 
-		_, err = r.tree.Commit("new report", &git.CommitOptions{
+		commitMessage := fmt.Sprintf("reporting %d addresses, %d total events", len(addrCounters), len(events))
+		_, err = r.tree.Commit(commitMessage,&git.CommitOptions{
 			Author: &object.Signature{
 				When: time.Now(),
 			},
