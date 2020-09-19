@@ -167,10 +167,10 @@ func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) 
 		fp.Close()
 
 		// add, commit and push
-		log.Info("updating repository")
+		log.Info("adding %s to repository", fileName)
 
 		if _, err := r.tree.Add(fileName); err != nil {
-			return "", fmt.Errorf("error while updating git repo %s: %v", r.Repository.Local, err)
+			return "", fmt.Errorf("error while adding report %s to git repo %s: %v", fileName, r.Repository.Local, err)
 		}
 
 		_, err = r.tree.Commit("new report", &git.CommitOptions{
@@ -178,9 +178,15 @@ func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) 
 				When: time.Now(),
 			},
 		})
+		if err != nil {
+			return "", fmt.Errorf("error while creating commit for git repo %s: %v", r.Repository.Local, err)
+		}
 
-		if err = r.repo.Push(&git.PushOptions{}); err != nil {
-			return "", fmt.Errorf("error while updating git repo %s: %v", r.Repository.Local, err)
+		pushOptions := git.PushOptions{
+			Auth: r.publicKey,
+		}
+		if err = r.repo.Push(&pushOptions); err != nil {
+			return "", fmt.Errorf("error while pushing git repo %s: %v", r.Repository.Local, err)
 		}
 
 		reportURL := r.Repository.HTTP
