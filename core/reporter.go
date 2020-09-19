@@ -24,6 +24,7 @@ type Reporter struct {
 	sync.Mutex
 
 	Enabled    bool       `yaml:"enabled"`
+	PeriodSecs int        `yaml:"period"`
 	Repository repository `yaml:"repository"`
 
 	publicKey *ssh.PublicKeys

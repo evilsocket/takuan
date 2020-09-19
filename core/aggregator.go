@@ -92,6 +92,37 @@ func (r *Aggregator) onNewBatch() {
 	}
 }
 
+func (r *Aggregator) onReport() {
+	var unreported []models.Event
+    var reportURL string
+
+	err := r.db.Where("reported IS ?", false).Find(&unreported).Error
+	if err != nil {
+		log.Error("error getting unreported events: %v", err)
+		return
+	}
+
+	if len(unreported) > 0 {
+		if reportURL, err = r.conf.Reporter.OnBatch(unreported); err != nil {
+			log.Error("%v", err)
+			return
+		}
+
+		for _, event := range unreported {
+			event.ReportedAt = time.Now()
+			event.Reported = true
+			if err := r.db.Save(event).Error; err != nil {
+				log.Error("error updating event reported field: %v", err)
+			}
+		}
+
+		if reportURL != "" {
+			log.Info("TODO: tweet %s", reportURL)
+			// r.conf.Twitter.OnBatch(r.buffer, reportURL)
+		}
+	}
+}
+
 func (r *Aggregator) sensorStateByName(sensorName string) int64 {
 	state := models.SensorState{}
 	if err := r.db.Where("sensor_name = ?", sensorName).Take(&state).Error; err != nil {
@@ -149,9 +180,21 @@ func (r *Aggregator) Start() (err error) {
 	}
 
 	go func() {
-		ticker := time.NewTicker(time.Duration(r.conf.Database.PeriodSecs) * time.Second)
-		for _ = range ticker.C {
+		log.Debug("db routine started")
+		dbTicker := time.NewTicker(time.Duration(r.conf.Database.PeriodSecs) * time.Second)
+		// reportTicker := time.NewTicker(time.Duration(r.conf.Reporter.PeriodSecs) * time.Second)
+		for _ = range dbTicker.C {
 			r.onNewBatch()
+		}
+	}()
+
+	go func() {
+		log.Debug("report routine started")
+		// warm up period for parsers to generate data
+		time.Sleep(time.Duration(30) * time.Second)
+		for {
+			r.onReport()
+			time.Sleep(time.Duration(r.conf.Reporter.PeriodSecs) * time.Second)
 		}
 	}()
 

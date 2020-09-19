@@ -9,6 +9,7 @@ database:
 # where to store reports as csv files
 reports:
   enabled: true
+  period: 3600
   repository:
     http: 'https://github.com/evilsocket/takuan-reports/blob/master/'
     remote: 'git@github.com:evilsocket/takuan-reports.git'
