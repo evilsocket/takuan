@@ -70,6 +70,8 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			countries = append(countries, fmt.Sprintf("%s (%d)", country.Country, country.Count))
 		}
 
+		log.Info("%+v", countries)
+
 		if len(countries) > 5 {
 			countries = append(countries[:5], "...")
 		}
