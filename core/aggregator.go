@@ -52,7 +52,7 @@ func (r *Aggregator) onNewBatch() {
 	num := len(r.buffer)
 
 	if num > 0 {
-		log.Info("saving %d new events", num)
+		log.Debug("saving %d new events", num)
 
 		started := time.Now()
 
@@ -96,7 +96,9 @@ func (r *Aggregator) onReport() {
 		return
 	}
 
-	if len(unreported) > 0 {
+	numUnreported := len(unreported)
+	log.Info("%d unreported events", numUnreported)
+	if numUnreported > 0 {
 		if reportURL, err = r.conf.Reporter.OnBatch(unreported); err != nil {
 			log.Error("%v", err)
 			return
@@ -174,7 +176,7 @@ func (r *Aggregator) Start() (err error) {
 	}
 
 	go func() {
-		log.Debug("db routine started")
+		log.Info("flushing to database every %d seconds", r.conf.Database.PeriodSecs)
 		dbTicker := time.NewTicker(time.Duration(r.conf.Database.PeriodSecs) * time.Second)
 		// reportTicker := time.NewTicker(time.Duration(r.conf.Reporter.PeriodSecs) * time.Second)
 		for _ = range dbTicker.C {
@@ -183,7 +185,7 @@ func (r *Aggregator) Start() (err error) {
 	}()
 
 	go func() {
-		log.Debug("report routine started")
+		log.Info("reporting every %d seconds", r.conf.Reporter.PeriodSecs)
 		// warm up period for parsers to generate data
 		time.Sleep(time.Duration(30) * time.Second)
 		for {
