@@ -46,7 +46,7 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 	if t.Enabled {
 		byCountry := make(map[string]int)
 		for _, event := range events {
-			if _, found := byCountry[event.Address]; found {
+			if _, found := byCountry[event.CountryName]; found {
 				byCountry[event.CountryName]++
 			} else {
 				byCountry[event.CountryName] = 1
@@ -62,7 +62,7 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			})
 		}
 		sort.Slice(countryCounters, func(i, j int) bool {
-			return countryCounters[i].Count < countryCounters[j].Count
+			return countryCounters[i].Count > countryCounters[j].Count
 		})
 
 		countries := make([]string, 0)
