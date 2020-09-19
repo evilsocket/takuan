@@ -12,38 +12,40 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"github.com/evilsocket/takuan/models"
 )
 
 type Aggregator struct {
 	sync.Mutex
 
-	EventBus chan Event
+	EventBus chan models.Event
+	StateBus chan models.SensorState
 	ErrorBus chan error
-	StateBus chan SensorState
 
 	conf   *Config
 	db     *gorm.DB
 	geoip  *geoip2.Reader
-	buffer []Event
+	buffer []models.Event
 }
 
 func NewAggregator(conf *Config) *Aggregator {
 	return &Aggregator{
-		EventBus: make(chan Event),
+		EventBus: make(chan models.Event),
 		ErrorBus: make(chan error),
-		StateBus: make(chan SensorState),
+		StateBus: make(chan models.SensorState),
 		conf:     conf,
-		buffer:   make([]Event, 0),
+		buffer:   make([]models.Event, 0),
 	}
 }
 
-func (r *Aggregator) addEvent(e Event) {
+func (r *Aggregator) addEvent(e models.Event) {
 	r.Lock()
 	defer r.Unlock()
 	r.buffer = append(r.buffer, e)
 }
 
-func (r *Aggregator) saveBatch() {
+func (r *Aggregator) onNewBatch() {
 	r.Lock()
 	defer r.Unlock()
 
@@ -80,22 +82,26 @@ func (r *Aggregator) saveBatch() {
 
 		log.Info("%d events saved in %s", num, time.Since(started))
 
-		r.conf.Twitter.OnBatch(r.buffer)
+		if reportURL, err := r.conf.Reporter.OnBatch(r.buffer); err != nil {
+			log.Error("%v", err)
+		} else if reportURL != "" {
+			r.conf.Twitter.OnBatch(r.buffer, reportURL)
+		}
 
-		r.buffer = make([]Event, 0)
+		r.buffer = make([]models.Event, 0)
 	}
 }
 
 func (r *Aggregator) sensorStateByName(sensorName string) int64 {
-	state := SensorState{}
+	state := models.SensorState{}
 	if err := r.db.Where("sensor_name = ?", sensorName).Take(&state).Error; err != nil {
 		return 0
 	}
 	return state.LastPosition
 }
 
-func (r *Aggregator) updateState(state SensorState) {
-	var existing SensorState
+func (r *Aggregator) updateState(state models.SensorState) {
+	var existing models.SensorState
 
 	log.Debug("updating sensor state: %s -> %d", state.SensorName, state.LastPosition)
 
@@ -129,7 +135,7 @@ func (r *Aggregator) Start() (err error) {
 
 	log.Debug("connected to the database")
 
-	err = r.db.AutoMigrate(&Event{}, &SensorState{})
+	err = r.db.AutoMigrate(&models.Event{}, &models.SensorState{})
 	if err != nil {
 		return fmt.Errorf("error performing database migration: %v", err)
 	}
@@ -145,7 +151,7 @@ func (r *Aggregator) Start() (err error) {
 	go func() {
 		ticker := time.NewTicker(time.Duration(r.conf.Database.PeriodSecs) * time.Second)
 		for _ = range ticker.C {
-			r.saveBatch()
+			r.onNewBatch()
 		}
 	}()
 

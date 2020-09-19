@@ -1,4 +1,4 @@
-package core
+package models
 
 type SensorState struct {
 	ID           uint   `gorm:"primary_key" json:"-"`

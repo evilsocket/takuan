@@ -9,6 +9,7 @@ import (
 type Config struct {
 	NodeName string    `yaml:"name"`
 	Database Database  `yaml:"database"`
+	Reporter *Reporter `yaml:"reports"`
 	Twitter  *Twitter  `yaml:"twitter"`
 	Sensors  []*Sensor `yaml:"sensors"`
 }
@@ -27,6 +28,12 @@ func Load(filename string) (*Config, error) {
 
 	for _, sensor := range conf.Sensors {
 		if err = sensor.Compile(); err != nil {
+			return nil, err
+		}
+	}
+
+	if conf.Reporter.Enabled {
+		if err = conf.Reporter.Init(); err != nil {
 			return nil, err
 		}
 	}

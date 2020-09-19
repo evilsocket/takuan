@@ -1,10 +1,20 @@
 name: 'local'
 
+# where to store events and how often
 database:
   url: "takuan:takuan@tcp(db:3316)/takuan?charset=utf8mb4&parseTime=True&loc=Local" 
   geoip: /etc/takuan/GeoLite2-Country.mmdb
   period: 10
 
+# where to store reports as csv files
+reports:
+  enabled: true
+  repository:
+    http: 'https://github.com/evilsocket/takuan-reports/blob/master/'
+    remote: 'git@github.com:evilsocket/takuan-reports.git'
+    local: '/var/log/takuan/reports'
+
+# twitter bot
 twitter:
   enabled: true
   pastebin_api_key: 'xxx'

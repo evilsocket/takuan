@@ -8,6 +8,8 @@ import (
 	"time"
 
 	"github.com/evilsocket/islazy/log"
+
+	"github.com/evilsocket/takuan/models"
 )
 
 type Sensor struct {
@@ -36,7 +38,7 @@ func (s *Sensor) Compile() error {
 	return nil
 }
 
-func (s *Sensor) Start(events chan Event, errors chan error, states chan SensorState, state int64) {
+func (s *Sensor) Start(events chan models.Event, errors chan error, states chan models.SensorState, state int64) {
 	go func() {
 		log.Info("sensor %s started for file %s (from offset %d)...", s.Name, s.Filename, state)
 		s.lastPos = state
@@ -80,7 +82,7 @@ func (s *Sensor) Start(events chan Event, errors chan error, states chan SensorS
 					// for each rule
 					for _, r := range s.Rules {
 						if matched, _ := r.Match(tokens); matched {
-							event := Event{
+							event := models.Event{
 								DetectedAt: time.Now(),
 								Address:    tokens["address"],
 								Payload:    line,
@@ -105,7 +107,7 @@ func (s *Sensor) Start(events chan Event, errors chan error, states chan SensorS
 			s.lastPos, _ = s.fp.Seek(0, io.SeekCurrent)
 			s.fp.Close()
 
-			states <- SensorState{
+			states <- models.SensorState{
 				SensorName:   s.Name,
 				LastPosition: s.lastPos,
 			}

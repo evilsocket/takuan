@@ -41,6 +41,7 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
+      - /var/log/takuan/:/var/log/takuan
       - /var/log/auth.log:/var/log/auth.log
       - /var/log/nginx:/var/log/nginx
       - /etc/takuan:/etc/takuan
