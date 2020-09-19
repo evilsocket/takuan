@@ -72,7 +72,7 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			if flag, err := emoji.CountryFlag(code); err == nil {
 				code = string(flag)
 			}
-			countries = append(countries, fmt.Sprintf("%s (%d)", code, country.Count))
+			countries = append(countries, fmt.Sprintf("%s  (%d)", code, country.Count))
 		}
 
 		if len(countries) > 5 {
