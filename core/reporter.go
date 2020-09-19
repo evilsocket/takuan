@@ -63,7 +63,7 @@ func (r *Reporter) Init() (err error) {
 			RemoteName: "origin",
 		}
 
-		if err = r.tree.Pull(&pullOpts); err != nil {
+		if err = r.tree.Pull(&pullOpts); err != nil && err != git.NoErrAlreadyUpToDate {
 			return fmt.Errorf("error while updating git repo %s: %v", r.Repository.Local, err)
 		}
 	} else {
