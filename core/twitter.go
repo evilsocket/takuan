@@ -1,6 +1,8 @@
 package core
 
 import (
+	"fmt"
+	"strings"
 	"sync"
 
 	"github.com/dghubble/go-twitter/twitter"
@@ -41,9 +43,6 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 	t.Lock()
 	defer t.Unlock()
 	if t.Enabled {
-		/*
-		content := ""
-
 		byCountry := make(map[string]bool)
 		countries := make([]string, 0)
 		for _, event := range events {
@@ -58,21 +57,16 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			countries = append(countries[:5], "...")
 		}
 
-		if url, err := t.createBin(content); err != nil {
-			log.Error("error creating pastebin: %v", err)
-		} else {
-			numEvents := len(events)
-			plural := "s"
-			if numEvents == 1 {
-				plural = ""
-			}
-
-			tweet := fmt.Sprintf("%d new event%s from %s %s", numEvents, plural, strings.Join(countries, ", "), url)
-			if err := t.postUpdate(tweet); err != nil {
-				log.Error("error tweeting: %v", err)
-			}
+		numEvents := len(events)
+		plural := "s"
+		if numEvents == 1 {
+			plural = ""
 		}
-		 */
+
+		tweet := fmt.Sprintf("%d new event%s from %s %s", numEvents, plural, strings.Join(countries, ", "), reportURL)
+		if err := t.postUpdate(tweet); err != nil {
+			log.Error("error tweeting: %v", err)
+		}
 	}
 }
 
