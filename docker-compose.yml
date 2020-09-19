@@ -40,6 +40,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        - SSH_PRIVATE_KEY
     volumes:
       - /var/log/takuan/:/var/log/takuan
       - /var/log/auth.log:/var/log/auth.log

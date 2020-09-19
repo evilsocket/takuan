@@ -11,6 +11,10 @@ RUN go mod download
 COPY . .
 RUN make takuan
 
+ARG SSH_PRIVATE_KEY
+RUN mkdir /root/.ssh/
+RUN echo "${SSH_PRIVATE_KEY}" > /root/.ssh/id_rsa
+
 # start a new stage from scratch
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
