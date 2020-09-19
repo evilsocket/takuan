@@ -62,7 +62,7 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 			})
 		}
 		sort.Slice(countryCounters, func(i, j int) bool {
-			return countryCounters[i].Count > countryCounters[j].Count
+			return countryCounters[i].Count < countryCounters[j].Count
 		})
 
 		countries := make([]string, 0)
