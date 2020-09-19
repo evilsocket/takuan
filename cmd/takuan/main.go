@@ -23,7 +23,7 @@ func main() {
 
 	conf, err = core.Load(confFile)
 	if err != nil {
-		log.Fatal("error loading configuration from %s: %v", confFile, err)
+		log.Fatal("%v", err)
 	}
 
 	aggregator = core.NewAggregator(conf)
