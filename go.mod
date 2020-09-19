@@ -5,6 +5,7 @@ go 1.13
 require (
 	github.com/dghubble/go-twitter v0.0.0-20200725221434-4bc8ad7ad1b4
 	github.com/dghubble/oauth1 v0.6.0
+	github.com/enescakir/emoji v1.0.0
 	github.com/evilsocket/islazy v1.10.6
 	github.com/go-git/go-git/v5 v5.1.0
 	github.com/jinzhu/gorm v1.9.12

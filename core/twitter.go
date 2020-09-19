@@ -9,6 +9,7 @@ import (
 	"github.com/dghubble/go-twitter/twitter"
 	"github.com/dghubble/oauth1"
 	"github.com/evilsocket/islazy/log"
+	"github.com/enescakir/emoji"
 
 	"github.com/evilsocket/takuan/models"
 )
@@ -46,10 +47,10 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 	if t.Enabled {
 		byCountry := make(map[string]int)
 		for _, event := range events {
-			if _, found := byCountry[event.CountryName]; found {
-				byCountry[event.CountryName]++
+			if _, found := byCountry[event.CountryCode]; found {
+				byCountry[event.CountryCode]++
 			} else {
-				byCountry[event.CountryName] = 1
+				byCountry[event.CountryCode] = 1
 			}
 		}
 
@@ -67,13 +68,17 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 
 		countries := make([]string, 0)
 		for _, country := range countryCounters {
-			countries = append(countries, fmt.Sprintf("%s (%d)", country.Country, country.Count))
+			code := country.Country
+			if flag, err := emoji.CountryFlag(code); err == nil {
+				code = string(flag)
+			}
+			countries = append(countries, fmt.Sprintf("%s (%d)", code, country.Count))
 		}
 
 		log.Info("%+v", countries)
 
-		if len(countries) > 5 {
-			countries = append(countries[:5], "...")
+		if len(countries) > 10 {
+			countries = append(countries[:10], "...")
 		}
 
 		numEvents := len(events)
