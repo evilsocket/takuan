@@ -43,7 +43,6 @@ services:
     environment:
       - SSH_AUTH_SOCK="${SSH_AUTH_SOCK}"
     volumes:
-      - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
       - ~/.ssh:/root/.ssh
       - /var/log/takuan/:/var/log/takuan
       - /var/log/auth.log:/var/log/auth.log
