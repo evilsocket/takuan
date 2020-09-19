@@ -2,6 +2,7 @@ package core
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"sync"
 
@@ -34,8 +35,8 @@ func (t *Twitter) Init() (err error) {
 	return
 }
 
-type addrCounter struct {
-	Address string
+type countryCounter struct {
+	Country string
 	Count   int
 }
 
@@ -43,14 +44,30 @@ func (t *Twitter) OnBatch(events []models.Event, reportURL string) {
 	t.Lock()
 	defer t.Unlock()
 	if t.Enabled {
-		byCountry := make(map[string]bool)
-		countries := make([]string, 0)
+		byCountry := make(map[string]int)
 		for _, event := range events {
-			byCountry[event.CountryName] = true
+			if _, found := byCountry[event.Address]; found {
+				byCountry[event.CountryName]++
+			} else {
+				byCountry[event.CountryName] = 1
+			}
 		}
 
-		for country := range byCountry {
-			countries = append(countries, country)
+		// sort by number of events
+		countryCounters := make([]countryCounter, 0)
+		for country, count := range byCountry {
+			countryCounters = append(countryCounters, countryCounter{
+				Country: country,
+				Count:   count,
+			})
+		}
+		sort.Slice(countryCounters, func(i, j int) bool {
+			return countryCounters[i].Count > countryCounters[j].Count
+		})
+
+		countries := make([]string, 0)
+		for _, country := range countryCounters {
+			countries = append(countries, fmt.Sprintf("%s (%d)", country.Country, country.Count))
 		}
 
 		if len(countries) > 5 {

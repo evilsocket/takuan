@@ -88,6 +88,11 @@ func (r *Reporter) Init() (err error) {
 	return nil
 }
 
+type addrCounter struct {
+	Address string
+	Count   int
+}
+
 func (r *Reporter) OnBatch(events []models.Event) (reportURL string, err error) {
 	r.Lock()
 	defer r.Unlock()
