@@ -41,7 +41,7 @@ services:
       context: .
       dockerfile: Dockerfile
     environment:
-      - SSH_AUTH_SOCK="${SSH_AUTH_SOCK}"
+      - SSH_AUTH_SOCK=${SSH_AUTH_SOCK}
     volumes:
       - ${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}
       - ~/.ssh:/root/.ssh
