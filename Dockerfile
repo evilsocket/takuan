@@ -1,6 +1,6 @@
 FROM golang:alpine as builder
 
-RUN apk update && apk add --no-cache git make gcc libc-dev
+RUN apk update && apk add --no-cache git make gcc libc-dev openssh-client
 
 # download, cache and install deps
 WORKDIR /app
