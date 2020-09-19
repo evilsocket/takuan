@@ -82,12 +82,6 @@ func (r *Aggregator) onNewBatch() {
 
 		log.Info("%d events saved in %s", num, time.Since(started))
 
-		if reportURL, err := r.conf.Reporter.OnBatch(r.buffer); err != nil {
-			log.Error("%v", err)
-		} else if reportURL != "" {
-			r.conf.Twitter.OnBatch(r.buffer, reportURL)
-		}
-
 		r.buffer = make([]models.Event, 0)
 	}
 }
@@ -108,8 +102,9 @@ func (r *Aggregator) onReport() {
 			return
 		}
 
+		now := time.Now()
 		for _, event := range unreported {
-			event.ReportedAt = time.Now()
+			event.ReportedAt = &now
 			event.Reported = true
 			if err := r.db.Save(event).Error; err != nil {
 				log.Error("error updating event reported field: %v", err)
