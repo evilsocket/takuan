@@ -14,7 +14,6 @@ type Twitter struct {
 	sync.Mutex
 
 	Enabled        bool   `yaml:"enabled"`
-	PasteBinKey    string `yaml:"pastebin_api_key"`
 	ConsumerKey    string `yaml:"consumer_key"`
 	ConsumerSecret string `yaml:"consumer_secret"`
 	AccessKey      string `yaml:"access_key"`
