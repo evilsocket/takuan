@@ -90,7 +90,7 @@ func (r *Aggregator) onReport() {
 	var unreported []models.Event
     var reportURL string
 
-	err := r.db.Where("reported_at = ?", nil).Find(&unreported).Error
+	err := r.db.Where("reported_at IS NULL").Find(&unreported).Error
 	if err != nil {
 		log.Error("error getting unreported events: %v", err)
 		return
