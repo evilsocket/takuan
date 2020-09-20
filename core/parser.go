@@ -17,8 +17,7 @@ var mandatoryTokens = []string{
 }
 
 var (
-	currYear       = time.Now().Year()
-	currYearString = fmt.Sprintf("%d", currYear)
+	currYear = time.Now().Year()
 )
 
 type Parser struct {
@@ -53,6 +52,15 @@ func (p *Parser) Compile() (err error) {
 	return
 }
 
+func hasYear(value string) bool {
+	for year := currYear - 5; year <= currYear; year++ {
+		if strings.Contains(value, fmt.Sprintf("%d", year)) {
+			return true
+		}
+	}
+	return false
+}
+
 func (p *Parser) Parse(line string) (matched bool, tokens Tokens) {
 	if m := p.compiled.FindStringSubmatch(line); len(m) >= p.maxIndex {
 
@@ -61,8 +69,8 @@ func (p *Parser) Parse(line string) (matched bool, tokens Tokens) {
 		for token, index := range p.Tokens {
 			value := m[index]
 			// ugly hack to handle formats withtout the year like sshd
-			if token == "datetime" && !strings.Contains(value, currYearString) {
-				value = fmt.Sprintf("%s %s", currYearString, value)
+			if token == "datetime" && !hasYear(value) {
+				value = fmt.Sprintf("%d %s", currYear, value)
 			}
 
 			tokens[token] = value

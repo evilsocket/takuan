@@ -4,10 +4,12 @@ import (
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
+	"github.com/evilsocket/islazy/log"
 )
 
 type Config struct {
 	NodeName string    `yaml:"name"`
+	Debug    bool      `yaml:"debug"`
 	Database Database  `yaml:"database"`
 	Reporter *Reporter `yaml:"reports"`
 	Twitter  *Twitter  `yaml:"twitter"`
@@ -24,6 +26,10 @@ func Load(filename string) (*Config, error) {
 
 	if err = yaml.Unmarshal(data, &conf); err != nil {
 		return nil, err
+	}
+
+	if conf.Debug {
+		log.Level = log.DEBUG
 	}
 
 	for _, sensor := range conf.Sensors {

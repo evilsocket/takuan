@@ -1,4 +1,5 @@
 name: 'local'
+debug: false
 
 # where to store events and how often
 database:

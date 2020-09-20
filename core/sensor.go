@@ -25,20 +25,25 @@ type Sensor struct {
 }
 
 func (s *Sensor) Compile() error {
-	if err := s.Parser.Compile(); err != nil {
-		return err
-	}
-
-	for _, r := range s.Rules {
-		if err := r.Compile(); err != nil {
+	if s.Enabled {
+		if err := s.Parser.Compile(); err != nil {
 			return err
 		}
-	}
 
+		for _, r := range s.Rules {
+			if err := r.Compile(); err != nil {
+				return err
+			}
+		}
+	}
 	return nil
 }
 
 func (s *Sensor) Start(events chan models.Event, errors chan error, states chan models.SensorState, state int64) {
+	if !s.Enabled {
+		return
+	}
+
 	go func() {
 		log.Info("sensor %s started for file %s (from offset %d)...", s.Name, s.Filename, state)
 		s.lastPos = state
