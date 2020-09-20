@@ -121,7 +121,7 @@ func (r *Aggregator) onReport() {
 
 func (r *Aggregator) sensorStateByName(sensorName string) int64 {
 	state := models.SensorState{}
-	if err := r.db.Where("sensor_name = ?", sensorName).Take(&state).Error; err != nil {
+	if err := r.db.Where("node_name = ? AND sensor_name = ?", r.conf.NodeName, sensorName).Take(&state).Error; err != nil {
 		return 0
 	}
 	return state.LastPosition
@@ -132,7 +132,9 @@ func (r *Aggregator) updateState(state models.SensorState) {
 
 	log.Debug("updating sensor state: %s -> %d", state.SensorName, state.LastPosition)
 
-	err := r.db.Where("sensor_name = ?", state.SensorName).First(&existing).Error
+	state.NodeName = r.conf.NodeName
+
+	err := r.db.Where("node_name = ? AND sensor_name = ?", r.conf.NodeName, state.SensorName).First(&existing).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		log.Debug("creating state %v", state)
 		err = r.db.Create(&state).Error
