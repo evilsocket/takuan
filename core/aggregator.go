@@ -186,15 +186,19 @@ func (r *Aggregator) Start() (err error) {
 		}
 	}()
 
-	go func() {
-		log.Info("reporting every %d seconds", r.conf.Reporter.PeriodSecs)
-		// warm up period for parsers to generate data
-		time.Sleep(time.Duration(120) * time.Second)
-		for {
-			r.onReport()
-			time.Sleep(time.Duration(r.conf.Reporter.PeriodSecs) * time.Second)
-		}
-	}()
+	if r.conf.Reporter.Enabled {
+		go func() {
+			log.Info("reporting every %d seconds", r.conf.Reporter.PeriodSecs)
+			// warm up period for parsers to generate data
+			time.Sleep(time.Duration(120) * time.Second)
+			for {
+				r.onReport()
+				time.Sleep(time.Duration(r.conf.Reporter.PeriodSecs) * time.Second)
+			}
+		}()
+	} else {
+		log.Info("reporting is disabled for this node")
+	}
 
 	for {
 		select {
