@@ -1,4 +1,4 @@
-Takuan is a system service that parses logs and dectects noisy attackers in order to build a blacklist database of
+Takuan is a system service that parses logs and detects noisy attackers in order to build a blacklist database of
  known cyber offenders.
  
 Periodic reports are saved to [this repository](https://github.com/evilsocket/takuan-reports) in CSV format for
