@@ -194,7 +194,7 @@ func (r *Aggregator) Start(geoLocate bool) (err error) {
 				log.Info("%s : '%s' -> '%s'", event.Address, event.CountryName, country.Country.Names["en"])
 				event.CountryCode = country.Country.IsoCode
 				event.CountryName = country.Country.Names["en"]
-				if err := r.db.Save(event); err != nil {
+				if err := r.db.Save(event).Error; err != nil {
 					log.Error("error saving event: %v", err)
 					errors++
 				} else {
