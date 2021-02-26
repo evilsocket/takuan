@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"os"
 	"sync"
 	"time"
 
@@ -149,7 +150,7 @@ func (r *Aggregator) updateState(state models.SensorState) {
 	}
 }
 
-func (r *Aggregator) Start() (err error) {
+func (r *Aggregator) Start(geoLocate bool) (err error) {
 	r.geoip, err = geoip2.Open(r.conf.Database.GeoIP)
 	if err != nil {
 		return err
@@ -169,6 +170,44 @@ func (r *Aggregator) Start() (err error) {
 		return fmt.Errorf("error performing database migration: %v", err)
 	}
 
+
+	if geoLocate {
+		log.Info("updating IP locations ...")
+
+		var events []models.Event
+
+		if err := r.db.Find(&events).Error; err != nil {
+			log.Fatal("error getting events: %v", err)
+		}
+
+		num := len(events)
+		changed := 0
+		errors := 0
+
+		log.Info("processing %d events ...", num)
+
+		for _, event := range events {
+			if country, err := r.geoip.Country(net.ParseIP(event.Address)); err != nil {
+				log.Error("error locating %s: %v", event.Address, err)
+				errors++
+			} else if event.CountryCode != country.Country.IsoCode {
+				log.Info("%s : '%s' -> '%s'", event.Address, event.CountryName, country.Country.Names["en"])
+				event.CountryCode = country.Country.IsoCode
+				event.CountryName = country.Country.Names["en"]
+				if err := r.db.Save(event); err != nil {
+					log.Error("error saving event: %v", err)
+					errors++
+				} else {
+					changed++
+				}
+			}
+		}
+
+		log.Info("done: %d changed, %d errors", changed, errors)
+
+		os.Exit(0)
+	}
+
 	for _, sensor := range r.conf.Sensors {
 		if sensor.Enabled {
 			sensor.Start(r.EventBus, r.ErrorBus, r.StateBus, r.sensorStateByName(sensor.Name))
@@ -180,7 +219,6 @@ func (r *Aggregator) Start() (err error) {
 	go func() {
 		log.Info("flushing to database every %d seconds", r.conf.Database.PeriodSecs)
 		dbTicker := time.NewTicker(time.Duration(r.conf.Database.PeriodSecs) * time.Second)
-		// reportTicker := time.NewTicker(time.Duration(r.conf.Reporter.PeriodSecs) * time.Second)
 		for _ = range dbTicker.C {
 			r.onNewBatch()
 		}

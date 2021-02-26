@@ -30,7 +30,7 @@ func main() {
 
 	log.Info("takuan service starting for node <%s> ...", conf.NodeName)
 
-	if err := aggregator.Start(); err != nil {
+	if err := aggregator.Start(geoLocate); err != nil {
 		log.Fatal("%v", err)
 	}
 }
